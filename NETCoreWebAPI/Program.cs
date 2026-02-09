@@ -1,4 +1,5 @@
 using NETCoreWebAPI.Records;
+using System.Reflection.Metadata.Ecma335;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,5 +32,10 @@ List<WeatherForecast> forecasts = new List<WeatherForecast>();
     return forecasts.ToArray();
 })
 .WithName("GetWeatherForecast");
+
+app.MapPost("/stonks", (StockDTO[] stocks) =>
+{
+    return stocks.Select((stock) => new Stock(stock.Symbol, stock.PrevPrice, stock.CurrPrice)).ToArray();
+}).WithName("GetStonks");
 
 app.Run();

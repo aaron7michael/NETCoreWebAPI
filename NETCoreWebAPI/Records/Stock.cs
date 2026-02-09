@@ -2,29 +2,41 @@
 {
     using Newtonsoft.Json;
     using System;
-    using System.Security.Cryptography.X509Certificates;
     using System.Text.Json.Serialization;
 
     internal record Stock(string Symbol)
     {
         [JsonPropertyName("Yesterday's Price")]
-        public int prevPrice { get; set; }
+        public decimal PrevPrice { get; set; }
         [JsonPropertyName("Today's Price")]
-        public int currPrice { get; set; }
+        public decimal CurrPrice { get; set; }
         [JsonPropertyName("Percent Change")]
-        public string percentChange => GetPercentChange(prevPrice, currPrice);
+        public string PercentChange => GetPercentChange(PrevPrice, CurrPrice);
 
         [JsonPropertyName("Recommended Action")]
-        public string recAction => GetRecommendedAction(prevPrice, currPrice);
+        public string RecAction => GetRecommendedAction(PrevPrice, CurrPrice);
         
+        public Stock(string Symbol, decimal PrevPrice, decimal CurrPrice) : this(Symbol)
+        {
+            this.PrevPrice = PrevPrice;
+            this.CurrPrice = CurrPrice;
+        }
 
-        private string GetRecommendedAction(int prevPrice, int currPrice)
+        private string GetRecommendedAction(decimal prevPrice, decimal currPrice)
         {
             return prevPrice < currPrice ? "SELL" : "BUY";   
         }
-        private string GetPercentChange(int prevPrice, int currPrice)
+        private string GetPercentChange(decimal prevPrice, decimal currPrice)
         {
-            throw new NotImplementedException();
+            decimal percentChange = (currPrice - prevPrice) / prevPrice * 100;
+
+            return $"%{Math.Round(percentChange, 2)}";
         }
+    }
+
+    internal record StockDTO(string Symbol)
+    {
+        public decimal PrevPrice { get; set; }
+        public decimal CurrPrice { get; set; }
     }
 }
