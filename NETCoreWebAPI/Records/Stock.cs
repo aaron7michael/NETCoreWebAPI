@@ -34,9 +34,6 @@
         }
     }
 
-    internal record StockDTO(string Symbol)
-    {
-        public decimal PrevPrice { get; set; }
-        public decimal CurrPrice { get; set; }
-    }
+    internal record StockDTO(string Symbol, decimal PrevPrice, decimal CurrPrice);
+    
 }
