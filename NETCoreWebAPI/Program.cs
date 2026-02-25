@@ -1,5 +1,4 @@
 using NETCoreWebAPI.Records;
-using System.Reflection.Metadata.Ecma335;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -1,3 +1,4 @@
 <Solution>
-  <Project Path="NETCoreWebAPI/NETCoreWebAPI.csproj" />
+  <Project Path="NETCoreControllerWebAPI/NETCoreControllerWebAPI.csproj" Id="42c42adc-2478-41ab-92fc-0c9662f61703" />
+  <Project Path="NETCoreWebAPI/NETCoreMinimWebAPI.csproj" />
 </Solution>
