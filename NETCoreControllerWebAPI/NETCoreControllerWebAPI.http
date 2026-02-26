@@ -1,6 +1,37 @@
-@NETCoreControllerWebAPI_HostAddress = http://localhost:5098
+@NETCoreControllerWebAPI_HostAddress = https://localhost:7137
 
-GET {{NETCoreControllerWebAPI_HostAddress}}/weatherforecast/
-Accept: application/json
+POST {{NETCoreControllerWebAPI_HostAddress}}/api/todoitems
+Content-Type: application/json
+
+{
+  "name": "feed snake",
+  "priority": 1,
+  "isComplete": true
+}
+
+###
+
+@id=1
+GET {{NETCoreControllerWebAPI_HostAddress}}/api/todoitems/{{id}}
+
+###
+
+PUT {{NETCoreControllerWebAPI_HostAddress}}/api/todoitems/{{id}}
+Content-Type: application/json
+
+{
+  "id": 1,
+  "name": "feed cat",
+  "priority": 1,
+  "isComplete": true
+}
+
+###
+
+DELETE {{NETCoreControllerWebAPI_HostAddress}}/api/todoitems/{{id}}
+
+###
+
+GET {{NETCoreControllerWebAPI_HostAddress}}/api/todoitems
 
 ###
