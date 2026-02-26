@@ -75,8 +75,14 @@ namespace NETCoreControllerWebAPI.Controllers
         // POST: api/TodoItems
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<TodoItem>> PostTodoItem(TodoItem todoItem)
+        public async Task<ActionResult<TodoItem>> PostTodoItem(TodoItemDTO todoItemDTO)
         {
+            TodoItem todoItem = new TodoItem()
+            {
+                Name = todoItemDTO.Name,
+                Priority = todoItemDTO.Priority ?? 0,
+                IsComplete = todoItemDTO.IsComplete,
+            };
             _context.TodoItems.Add(todoItem);
             await _context.SaveChangesAsync();
 
