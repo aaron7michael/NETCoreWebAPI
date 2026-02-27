@@ -9,7 +9,7 @@ using NETCoreControllerWebAPI.Models;
 
 namespace NETCoreControllerWebAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class TodoItemsController : ControllerBase
     {
@@ -20,14 +20,14 @@ namespace NETCoreControllerWebAPI.Controllers
             _context = context;
         }
 
-        // GET: api/TodoItems
+        // GET: /TodoItems
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TodoItem>>> GetTodoItems()
         {
-            return await _context.TodoItems.ToListAsync();
+            return await _context.TodoItems.OrderBy(tdi => tdi.Priority ).ToListAsync();
         }
 
-        // GET: api/TodoItems/5
+        // GET: /TodoItems/5
         [HttpGet("{id}")]
         public async Task<ActionResult<TodoItem>> GetTodoItem(long id)
         {
@@ -41,9 +41,9 @@ namespace NETCoreControllerWebAPI.Controllers
             return todoItem;
         }
 
-        // PUT: api/TodoItems/5
+        // PUT: /TodoItems/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
+        [HttpPatch("{id}")]
         public async Task<IActionResult> PutTodoItem(long id, TodoItem todoItem)
         {
             if (id != todoItem.Id)
@@ -72,15 +72,15 @@ namespace NETCoreControllerWebAPI.Controllers
             return NoContent();
         }
 
-        // POST: api/TodoItems
+        // POST: /TodoItems
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<TodoItem>> PostTodoItem(TodoItemDTO todoItemDTO)
         {
-            TodoItem todoItem = new TodoItem()
+            TodoItem todoItem = new()
             {
                 Name = todoItemDTO.Name,
-                Priority = todoItemDTO.Priority ?? 0,
+                Priority = todoItemDTO.Priority ?? GetNextPriorityValue(),
                 IsComplete = todoItemDTO.IsComplete,
             };
             _context.TodoItems.Add(todoItem);
@@ -89,7 +89,7 @@ namespace NETCoreControllerWebAPI.Controllers
             return CreatedAtAction(nameof(GetTodoItem), new { id = todoItem.Id }, todoItem);
         }
 
-        // DELETE: api/TodoItems/5
+        // DELETE: /TodoItems/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTodoItem(long id)
         {
@@ -108,6 +108,12 @@ namespace NETCoreControllerWebAPI.Controllers
         private bool TodoItemExists(long id)
         {
             return _context.TodoItems.Any(e => e.Id == id);
+        }
+        private int GetNextPriorityValue()
+        {
+            if (!_context.TodoItems.Any()) return 1;
+
+            return _context.TodoItems.OrderByDescending(tdi => tdi.Priority).First().Priority + 1;
         }
     }
 }

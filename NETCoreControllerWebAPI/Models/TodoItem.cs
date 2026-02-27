@@ -6,6 +6,7 @@ namespace NETCoreControllerWebAPI.Models
     {
         public long Id { get; set; }
         public string Name { get; set; }
+        [Range(1, int.MaxValue)]
         public int Priority { get; set; }
         public bool IsComplete { get; set; }
     }
