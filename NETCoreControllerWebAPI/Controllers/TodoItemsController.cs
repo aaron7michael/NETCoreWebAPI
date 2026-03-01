@@ -51,8 +51,12 @@ namespace NETCoreControllerWebAPI.Controllers
                 return NotFound();
             }
 
+            if (todoItemPatch.Priority.HasValue) IncrementItemPriorities(todoItemPatch.Priority.Value);
+
             TodoItem todoItem = await _context.TodoItems.FindAsync(id);
+            
             UpdateTodoItem(ref todoItem, todoItemPatch);
+            
             _context.Entry(todoItem).State = EntityState.Modified;
 
             try
@@ -79,6 +83,7 @@ namespace NETCoreControllerWebAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<TodoItem>> PostTodoItem(TodoItemDTO todoItemDTO)
         {
+            if (todoItemDTO.Priority.HasValue) IncrementItemPriorities(todoItemDTO.Priority.Value);
             TodoItem todoItem = new()
             {
                 Name = todoItemDTO.Name,
@@ -117,11 +122,24 @@ namespace NETCoreControllerWebAPI.Controllers
 
             return _context.TodoItems.OrderByDescending(tdi => tdi.Priority).First().Priority + 1;
         }
+
         private void UpdateTodoItem (ref TodoItem toDoItem, TodoItemPatchDTO patchData)
         {
             toDoItem.Name = patchData.Name ?? toDoItem.Name;
             toDoItem.Priority = patchData.Priority ?? toDoItem.Priority;
             toDoItem.IsComplete = patchData.IsComplete ?? toDoItem.IsComplete;
+        }
+//TODO: update increment to only increment needed items
+        private void IncrementItemPriorities(int newPriority, int oldPriority)
+        {
+            bool priorityConflict = _context.TodoItems.Where(tdi => tdi.Priority == newPriority).Any();
+            if (priorityConflict)
+            {
+                foreach (var item in _context.TodoItems.Where(tdi => tdi.Priority <= newPriority && tdi.Priority < oldPriority))
+                {
+                    item.Priority++;
+                }
+            }
         }
     }
 }
