@@ -41,16 +41,18 @@ namespace NETCoreControllerWebAPI.Controllers
             return todoItem;
         }
 
-        // PUT: /TodoItems/5
+        // PATCH: /TodoItems/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPatch("{id}")]
-        public async Task<IActionResult> PutTodoItem(long id, TodoItem todoItem)
+        public async Task<IActionResult> PatchTodoItem(long id, TodoItemPatchDTO todoItemPatch)
         {
-            if (id != todoItem.Id)
+            if (!TodoItemExists(id))
             {
-                return BadRequest();
+                return NotFound();
             }
 
+            TodoItem todoItem = await _context.TodoItems.FindAsync(id);
+            UpdateTodoItem(ref todoItem, todoItemPatch);
             _context.Entry(todoItem).State = EntityState.Modified;
 
             try
@@ -114,6 +116,12 @@ namespace NETCoreControllerWebAPI.Controllers
             if (!_context.TodoItems.Any()) return 1;
 
             return _context.TodoItems.OrderByDescending(tdi => tdi.Priority).First().Priority + 1;
+        }
+        private void UpdateTodoItem (ref TodoItem toDoItem, TodoItemPatchDTO patchData)
+        {
+            toDoItem.Name = patchData.Name ?? toDoItem.Name;
+            toDoItem.Priority = patchData.Priority ?? toDoItem.Priority;
+            toDoItem.IsComplete = patchData.IsComplete ?? toDoItem.IsComplete;
         }
     }
 }
