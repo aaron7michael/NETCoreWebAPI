@@ -23,22 +23,20 @@ namespace NETCoreControllerWebAPI.Controllers
         // GET: /TodoItems
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TodoItem>>> GetTodoItems()
-        {
-            return await _context.TodoItems.OrderBy(tdi => tdi.Priority ).ToListAsync();
-        }
+            => await _context.TodoItems.OrderBy(tdi => tdi.Priority ).ToListAsync();
 
         // GET: /TodoItems/5
         [HttpGet("{id}")]
         public async Task<ActionResult<TodoItem>> GetTodoItem(long id)
         {
-            var todoItem = await _context.TodoItems.FindAsync(id);
+            var todoItem = GetTodoItemByID(id);
 
             if (todoItem == null)
             {
                 return NotFound();
             }
 
-            return todoItem;
+            return await todoItem;
         }
 
         // PATCH: /TodoItems/5
@@ -50,11 +48,10 @@ namespace NETCoreControllerWebAPI.Controllers
             {
                 return NotFound();
             }
+            TodoItem todoItem = await GetTodoItemByID(id);
 
-            if (todoItemPatch.Priority.HasValue) IncrementItemPriorities(todoItemPatch.Priority.Value);
+            if (todoItemPatch.Priority.HasValue) IncrementItemPriorities(todoItemPatch.Priority.Value, todoItem.Priority);
 
-            TodoItem todoItem = await _context.TodoItems.FindAsync(id);
-            
             UpdateTodoItem(ref todoItem, todoItemPatch);
             
             _context.Entry(todoItem).State = EntityState.Modified;
@@ -97,6 +94,7 @@ namespace NETCoreControllerWebAPI.Controllers
         }
 
         // DELETE: /TodoItems/5
+//TODO: Adjust item priorities after delete
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTodoItem(long id)
         {
@@ -112,15 +110,11 @@ namespace NETCoreControllerWebAPI.Controllers
             return NoContent();
         }
 
-        private bool TodoItemExists(long id)
-        {
-            return _context.TodoItems.Any(e => e.Id == id);
-        }
         private int GetNextPriorityValue()
         {
             if (!_context.TodoItems.Any()) return 1;
 
-            return _context.TodoItems.OrderByDescending(tdi => tdi.Priority).First().Priority + 1;
+            return _context.TodoItems.Max(tdi => tdi.Priority) + 1;
         }
 
         private void UpdateTodoItem (ref TodoItem toDoItem, TodoItemPatchDTO patchData)
@@ -130,16 +124,44 @@ namespace NETCoreControllerWebAPI.Controllers
             toDoItem.IsComplete = patchData.IsComplete ?? toDoItem.IsComplete;
         }
 //TODO: update increment to only increment needed items
-        private void IncrementItemPriorities(int newPriority, int oldPriority)
+        private void IncrementItemPriorities(int priority)
         {
-            bool priorityConflict = _context.TodoItems.Where(tdi => tdi.Priority == newPriority).Any();
-            if (priorityConflict)
+            if (isPriorityConflict(priority))
             {
-                foreach (var item in _context.TodoItems.Where(tdi => tdi.Priority <= newPriority && tdi.Priority < oldPriority))
+                foreach (var item in _context.TodoItems.Where(tdi => tdi.Priority >= priority))
                 {
                     item.Priority++;
                 }
             }
         }
+        private void IncrementItemPriorities(int newPriority, int oldPriority)
+        {
+            if (newPriority == oldPriority) return;
+
+            bool priorityIncrease = newPriority < oldPriority;
+            if (isPriorityConflict(newPriority))
+            {
+                if (priorityIncrease)
+                {
+                    foreach (var item in _context.TodoItems.Where(tdi => tdi.Priority >= newPriority && tdi.Priority < oldPriority))
+                    {
+                        item.Priority++;
+                    }
+                }
+                else
+                {
+                    foreach (var item in _context.TodoItems.Where(tdi => tdi.Priority <= newPriority && tdi.Priority > oldPriority))
+                    {
+                        item.Priority--;
+                    }
+                }
+            }
+        }
+        private bool TodoItemExists(long id)
+            => _context.TodoItems.Any(e => e.Id == id);
+        private async Task<TodoItem> GetTodoItemByID(long id)
+            => await _context.TodoItems.FindAsync(id);
+        private bool isPriorityConflict(int priority) 
+            => _context.TodoItems.Where(tdi => tdi.Priority == priority).Any();
     }
 }
