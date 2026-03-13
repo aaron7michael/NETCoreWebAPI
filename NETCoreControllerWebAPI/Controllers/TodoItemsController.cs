@@ -50,7 +50,7 @@ namespace NETCoreControllerWebAPI.Controllers
             }
             TodoItem todoItem = await GetTodoItemByID(id);
 
-            if (todoItemPatch.Priority.HasValue) IncrementItemPriorities(todoItemPatch.Priority.Value, todoItem.Priority);
+            if (todoItemPatch.Priority.HasValue) AdjustItemPriorities(todoItemPatch.Priority.Value, todoItem.Priority);
 
             UpdateTodoItem(ref todoItem, todoItemPatch);
             
@@ -80,7 +80,7 @@ namespace NETCoreControllerWebAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<TodoItem>> PostTodoItem(TodoItemDTO todoItemDTO)
         {
-            if (todoItemDTO.Priority.HasValue) IncrementItemPriorities(todoItemDTO.Priority.Value);
+            if (todoItemDTO.Priority.HasValue) AdjustItemPriorities(todoItemDTO.Priority.Value);
             TodoItem todoItem = new()
             {
                 Name = todoItemDTO.Name,
@@ -103,7 +103,7 @@ namespace NETCoreControllerWebAPI.Controllers
             {
                 return NotFound();
             }
-
+            AdjustItemPriorities(todoItem.Priority, true);
             _context.TodoItems.Remove(todoItem);
             await _context.SaveChangesAsync();
 
@@ -123,18 +123,17 @@ namespace NETCoreControllerWebAPI.Controllers
             toDoItem.Priority = patchData.Priority ?? toDoItem.Priority;
             toDoItem.IsComplete = patchData.IsComplete ?? toDoItem.IsComplete;
         }
-//TODO: update increment to only increment needed items
-        private void IncrementItemPriorities(int priority)
+        private void AdjustItemPriorities(int priority, bool isDecrease = false)
         {
             if (isPriorityConflict(priority))
             {
                 foreach (var item in _context.TodoItems.Where(tdi => tdi.Priority >= priority))
                 {
-                    item.Priority++;
+                    item.Priority = isDecrease ? item.Priority--: item.Priority++;
                 }
             }
         }
-        private void IncrementItemPriorities(int newPriority, int oldPriority)
+        private void AdjustItemPriorities(int newPriority, int oldPriority)
         {
             if (newPriority == oldPriority) return;
 
