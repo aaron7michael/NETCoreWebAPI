@@ -80,7 +80,9 @@ namespace NETCoreControllerWebAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<TodoItem>> PostTodoItem(TodoItemDTO todoItemDTO)
         {
-            if (todoItemDTO.Priority.HasValue) AdjustItemPriorities(todoItemDTO.Priority.Value);
+            if (todoItemDTO.Priority.HasValue && isPriorityConflict(todoItemDTO.Priority.Value) )
+                AdjustItemPriorities(todoItemDTO.Priority.Value);
+
             TodoItem todoItem = new()
             {
                 Name = todoItemDTO.Name,
@@ -125,12 +127,9 @@ namespace NETCoreControllerWebAPI.Controllers
         }
         private void AdjustItemPriorities(int priority, bool isDecrease = false)
         {
-            if (isPriorityConflict(priority))
+            foreach (var item in _context.TodoItems.Where(tdi => tdi.Priority >= priority))
             {
-                foreach (var item in _context.TodoItems.Where(tdi => tdi.Priority >= priority))
-                {
-                    item.Priority = isDecrease ? item.Priority--: item.Priority++;
-                }
+                    item.Priority = isDecrease ? item.Priority - 1: item.Priority + 1;
             }
         }
         private void AdjustItemPriorities(int newPriority, int oldPriority)
